@@ -5,12 +5,12 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 private val NeoBrutalColorScheme = lightColorScheme(
-    primary = NeoBrutalColors.Black,
-    onPrimary = NeoBrutalColors.White,
-    background = NeoBrutalColors.Background,
-    surface = NeoBrutalColors.Surface,
-    onBackground = NeoBrutalColors.Black,
-    onSurface = NeoBrutalColors.Black,
+    primary = NColors.Black,
+    onPrimary = NColors.White,
+    background = NColors.Background,
+    surface = NColors.Surface,
+    onBackground = NColors.Black,
+    onSurface = NColors.Black,
 )
 
 /**
