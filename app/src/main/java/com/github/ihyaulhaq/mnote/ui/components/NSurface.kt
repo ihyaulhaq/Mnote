@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
@@ -35,12 +37,14 @@ fun NSurface(
     backgroundColor: Color = NColors.White,
     borderColor: Color = NColors.Black,
     shadowColor: Color = NColors.Black,
-    borderWidth: Dp = 4.dp,
-    shadowOffset: Dp = 5.dp,
-    shape: Shape = RectangleShape,
+    borderWidth: Dp = 3.dp,
+    shadowOffset: Dp = 6.dp,
+    cornerRadius: Dp = 6.dp,
     pressed: Boolean = false,
     content: @Composable BoxScope.() -> Unit = {},
 ) {
+    val shape = RoundedCornerShape(cornerRadius)
+
     Box(
         modifier = modifier
             .wrapContentSize()
@@ -61,6 +65,7 @@ fun NSurface(
                     x = if (pressed) shadowOffset else 0.dp,
                     y = if (pressed) shadowOffset else 0.dp
                 )
+                .clip(shape)
                 .background(backgroundColor, shape)
                 .border(borderWidth, borderColor, shape),
             content = content
