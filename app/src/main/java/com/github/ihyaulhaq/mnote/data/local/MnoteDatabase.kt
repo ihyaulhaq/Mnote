@@ -27,7 +27,7 @@ abstract class MnoteDatabase : RoomDatabase() {
                     context.applicationContext,
                     MnoteDatabase::class.java,
                     "mnote.db"
-                ).fallbackToDestructiveMigration(dropAllTables = true).build().also { INSTANCE = it }
+                ).build().also { INSTANCE = it }
             }
         }
     }
