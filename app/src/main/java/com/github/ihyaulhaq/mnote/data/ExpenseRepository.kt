@@ -16,6 +16,10 @@ class ExpenseRepository(
 
     suspend fun addExpense(expense: Expense) = expenseDao.insert(expense)
     suspend fun deleteExpense(id: Long) = expenseDao.deleteById(id)
+    suspend fun updateExpense(expense: Expense) = expenseDao.update(expense)
+    suspend fun getExpenseById(id: Long) = expenseDao.getById(id)
+    fun getExpensesByDateRange(start: Long, end: Long) = expenseDao.observeByDateRange(start, end)
+
     suspend fun addCategory(category: Category) = categoryDao.insert(category)
     suspend fun deleteCategory(id: Long) = categoryDao.deleteById(id)
 
