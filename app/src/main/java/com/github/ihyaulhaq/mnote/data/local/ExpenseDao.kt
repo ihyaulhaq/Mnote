@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Transaction
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 data class ExpenseWithCategory(
@@ -28,4 +29,14 @@ interface ExpenseDao {
 
     @Query("DELETE FROM expenses WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Update
+    suspend fun update(expense: Expense)
+
+    @Query("SELECT * FROM expenses WHERE id = :id")
+    suspend fun getById(id: Long): Expense?
+
+    @Transaction
+    @Query("SELECT * FROM expenses WHERE timestamp BETWEEN :start AND :end ORDER BY timestamp DESC")
+    fun observeByDateRange(start: Long, end: Long): Flow<List<ExpenseWithCategory>>
 }
