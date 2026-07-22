@@ -1,6 +1,7 @@
 package com.github.ihyaulhaq.mnote.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,11 +20,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,9 +40,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ihyaulhaq.mnote.MnoteApp
 import com.github.ihyaulhaq.mnote.ui.components.NButton
+import com.github.ihyaulhaq.mnote.ui.components.NSurface
 import com.github.ihyaulhaq.mnote.ui.components.NTextField
-import com.github.ihyaulhaq.mnote.ui.theme.NColors
 import com.github.ihyaulhaq.mnote.ui.theme.MnoteTheme
+import com.github.ihyaulhaq.mnote.ui.theme.NColors
 
 @Composable
 fun HomeScreen(
@@ -53,12 +57,12 @@ fun HomeScreen(
     MnoteTheme {
         var fieldValue by remember { mutableStateOf("") }
         val categories by viewModel.categories.collectAsState()
-        var selectedCategoryId by remember { mutableStateOf(0L) }
 
-        // Set default selected category once categories are loaded
-        if (selectedCategoryId == 0L && categories.isNotEmpty()) {
-            selectedCategoryId = categories.first().id
-        }
+        // Modal state
+        var showModal by remember { mutableStateOf(false) }
+        var pendingAmount by remember { mutableDoubleStateOf(0.0) }
+        var modalCategoryId by remember { mutableStateOf(0L) }
+        var modalDesc by remember { mutableStateOf("") }
 
         val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9")
 
@@ -100,31 +104,6 @@ fun HomeScreen(
                     onValueChange = { fieldValue = it },
                     placeholder = "0"
                 )
-
-                // category picker
-                FlowRow(
-                    modifier = Modifier.wrapContentWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    maxItemsInEachRow = 3
-                ) {
-                    categories.forEach { category ->
-                        val isSelected = category.id == selectedCategoryId
-                        NButton(
-                            backgroundColor = if (isSelected) NColors.Blue else NColors.White,
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
-                            contentSize = 40.dp,
-                            onClick = { selectedCategoryId = category.id }
-                        ) {
-                            Text(
-                                text = category.name,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected) NColors.White else NColors.Black
-                            )
-                        }
-                    }
-                }
 
                 // keypad
                 FlowRow(
@@ -173,9 +152,11 @@ fun HomeScreen(
                         contentSize = 50.dp,
                         onClick = {
                             val amount = fieldValue.toDoubleOrNull()
-                            if (amount != null && amount > 0 && selectedCategoryId != 0L) {
-                                viewModel.addExpense(amount, selectedCategoryId)
-                                fieldValue = ""
+                            if (amount != null && amount > 0) {
+                                pendingAmount = amount
+                                modalCategoryId = categories.firstOrNull()?.id ?: 0L
+                                modalDesc = ""
+                                showModal = true
                             }
                         }
                     ) {
@@ -190,6 +171,132 @@ fun HomeScreen(
 
             }
 
+            // Modal overlay
+            if (showModal) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(NColors.Black.copy(alpha = 0.5f))
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = null,
+                            onClick = { showModal = false }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    NSurface(
+                        modifier = Modifier
+                            .width(IntrinsicSize.Max)
+                            .clickable(
+                                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                indication = null,
+                                onClick = { }
+                            ),
+                        shadowOffset = 8.dp,
+                        borderWidth = 3.dp,
+                        cornerRadius = 6.dp
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(20.dp)
+                                .width(IntrinsicSize.Max),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+//                            Text(
+//                                text = "Rp ${pendingAmount.toLong()}",
+//                                fontSize = 24.sp,
+//                                fontWeight = FontWeight.ExtraBold,
+//                                color = NColors.Black
+//                            )
+
+                            // category picker
+                            FlowRow(
+                                modifier = Modifier.wrapContentWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                maxItemsInEachRow = 3
+                            ) {
+                                categories.forEach { category ->
+                                    val isSelected = category.id == modalCategoryId
+                                    NButton(
+                                        backgroundColor = if (isSelected) NColors.Blue else NColors.White,
+                                        contentPadding = PaddingValues(
+                                            horizontal = 16.dp,
+                                            vertical = 10.dp
+                                        ),
+                                        contentSize = 40.dp,
+                                        onClick = { modalCategoryId = category.id }
+                                    ) {
+                                        Text(
+                                            text = category.name,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSelected) NColors.White else NColors.Black
+                                        )
+                                    }
+                                }
+                            }
+
+                            // description field
+                            NTextField(
+                                value = modalDesc,
+                                modifier = Modifier.height(60.dp),
+                                onValueChange = { modalDesc = it },
+                                placeholder = "note (optional)"
+                            )
+
+                            // confirm and cancel
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+//                                NButton(
+//                                    backgroundColor = NColors.Red,
+//                                    contentPadding = PaddingValues(
+//                                        horizontal = 20.dp,
+//                                        vertical = 10.dp
+//                                    ),
+//                                    contentSize = 40.dp,
+//                                    onClick = { showModal = false }
+//                                ) {
+//                                    Text(
+//                                        text = "Cancel",
+//                                        fontSize = 16.sp,
+//                                        fontWeight = FontWeight.Bold,
+//                                        color = NColors.Black
+//                                    )
+//                                }
+                                NButton(
+                                    backgroundColor = NColors.Green,
+                                    contentPadding = PaddingValues(
+                                        horizontal = 20.dp,
+                                        vertical = 10.dp
+                                    ),
+                                    contentSize = 40.dp,
+                                    onClick = {
+                                        if (modalCategoryId != 0L) {
+                                            viewModel.addExpense(
+                                                pendingAmount,
+                                                modalCategoryId,
+                                                modalDesc
+                                            )
+                                            fieldValue = ""
+                                            showModal = false
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Save,
+                                        contentDescription = "Save",
+                                        modifier = Modifier.size(35.dp),
+                                        tint = NColors.Orange
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
