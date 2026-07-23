@@ -203,13 +203,6 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-//                            Text(
-//                                text = "Rp ${pendingAmount.toLong()}",
-//                                fontSize = 24.sp,
-//                                fontWeight = FontWeight.ExtraBold,
-//                                color = NColors.Black
-//                            )
-
                             // category picker
                             FlowRow(
                                 modifier = Modifier.wrapContentWidth(),
@@ -250,22 +243,6 @@ fun HomeScreen(
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-//                                NButton(
-//                                    backgroundColor = NColors.Red,
-//                                    contentPadding = PaddingValues(
-//                                        horizontal = 20.dp,
-//                                        vertical = 10.dp
-//                                    ),
-//                                    contentSize = 40.dp,
-//                                    onClick = { showModal = false }
-//                                ) {
-//                                    Text(
-//                                        text = "Cancel",
-//                                        fontSize = 16.sp,
-//                                        fontWeight = FontWeight.Bold,
-//                                        color = NColors.Black
-//                                    )
-//                                }
                                 NButton(
                                     backgroundColor = NColors.Green,
                                     contentPadding = PaddingValues(

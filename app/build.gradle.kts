@@ -30,6 +30,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -57,6 +58,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation (libs.mpandroidchart)
     testImplementation(libs.junit)
+    coreLibraryDesugaring(libs.desugar.jdk.libs )
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

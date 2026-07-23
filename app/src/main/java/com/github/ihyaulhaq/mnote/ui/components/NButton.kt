@@ -24,6 +24,7 @@ import com.github.ihyaulhaq.mnote.ui.theme.NColors
 fun NButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     contentSize: Dp = 30.dp,
     backgroundColor: Color = NColors.White,
@@ -45,7 +46,7 @@ fun NButton(
         pressed = isPressed,
     ) {
         Row(
-            modifier = Modifier
+            modifier = contentModifier
                 .padding(contentPadding)
                 .size(contentSize),
             horizontalArrangement = Arrangement.Center,
