@@ -30,27 +30,31 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateRangePicker(
-    onRangeSelected: (start: Long, end: Long) -> Unit, onClear: () -> Unit
+    startDate: Long?,
+    endDate: Long?,
+    onStartDateSelected: (Long) -> Unit,
+    onEndDateSelected: (Long) -> Unit,
+    onClear: () -> Unit
 ) {
     var showStartPicker by remember { mutableStateOf(false) }
     var showEndPicker by remember { mutableStateOf(false) }
-    var startDate by remember { mutableStateOf<Long?>(null) }
-    var endDate by remember { mutableStateOf<Long?>(null) }
 
-    val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+    val dateFormat = remember { SimpleDateFormat("dd/MM/yy", Locale.getDefault()) }
 
-    // Row with start date, end date, and clear button
+    val hasRange = startDate != null && endDate != null
+
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         NButton(
             backgroundColor = if (startDate != null) NColors.Blue else NColors.White,
             modifier = Modifier.weight(1f),
-            contentModifier = Modifier.width(150.dp),
+            contentModifier = Modifier.fillMaxWidth(),
             onClick = { showStartPicker = true },
         ) {
             Text(text = startDate?.let { dateFormat.format(Date(it)) } ?: "From",
@@ -62,21 +66,23 @@ fun DateRangePicker(
         NButton(
             backgroundColor = if (endDate != null) NColors.Blue else NColors.White,
             modifier = Modifier.weight(1f),
-            contentModifier = Modifier.width(150.dp),
-            onClick = { showEndPicker = true }) {
+            contentModifier = Modifier.fillMaxWidth(),
+            onClick = { showEndPicker = true }
+        ) {
             Text(text = endDate?.let { dateFormat.format(Date(it)) } ?: "To",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (endDate != null) NColors.White else NColors.Black)
         }
 
-        if (startDate != null && endDate != null) {
-            NButton(
-                backgroundColor = NColors.Red, modifier = Modifier.weight(1f), onClick = {
-                    startDate = null
-                    endDate = null
-                    onClear()
-                }) {
+        NButton(
+            backgroundColor = NColors.Red,
+            modifier = Modifier.weight(if (hasRange) 1f else 0f),
+            contentModifier = Modifier.fillMaxWidth(),
+            enabled = hasRange,
+            onClick = onClear
+        ) {
+            if (hasRange) {
                 Text(
                     text = "Clear",
                     fontSize = 12.sp,
@@ -103,10 +109,8 @@ fun DateRangePicker(
             onDismissRequest = { showStartPicker = false },
             onConfirm = { date ->
                 val millis = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                startDate = millis
+                onStartDateSelected(millis)
                 showStartPicker = false
-                endDate?.let { onRangeSelected(millis, it) }
-
             },
             initialDate = startDate?.let {
                 Date(it).toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -117,15 +121,13 @@ fun DateRangePicker(
         )
     }
 
-    // end date
     if (showEndPicker) {
         NDatePickerDialog(
             onDismissRequest = { showEndPicker = false },
             onConfirm = { date ->
                 val millis = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                endDate = millis
+                onEndDateSelected(millis)
                 showEndPicker = false
-                startDate?.let { onRangeSelected(it, millis) }
             },
             initialDate = endDate?.let {
                 Date(it).toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -141,5 +143,5 @@ fun DateRangePicker(
 @Preview(showBackground = true)
 @Composable
 fun DateRangePickerPreview() {
-    DateRangePicker(onRangeSelected = { _, _ -> }, onClear = {})
+    DateRangePicker( startDate = null, endDate = null, onStartDateSelected = {}, onEndDateSelected = {}, onClear = {})
 }

@@ -1,5 +1,6 @@
 ﻿package com.github.ihyaulhaq.mnote.ui.stats
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,7 +23,9 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -36,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ihyaulhaq.mnote.MnoteApp
 import com.github.ihyaulhaq.mnote.ui.components.NButton
@@ -60,6 +64,7 @@ private val tabs = listOf(
 fun StatsScreen(
     onNavigateBack: () -> Unit,
     viewModel: ExpenseViewModel = viewModel(
+        viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner,
         factory = ExpenseViewModelFactory(
             LocalContext.current.applicationContext as MnoteApp
         )
@@ -69,6 +74,16 @@ fun StatsScreen(
         var selectedTab by remember { mutableIntStateOf(0) }
         val filteredExpenses by viewModel.filteredExpenses.collectAsState()
         val categories by viewModel.categories.collectAsState()
+        val dateRange by viewModel.dateRange.collectAsState()
+        val error by viewModel.error.collectAsState()
+        val context = LocalContext.current
+
+        LaunchedEffect(error) {
+            error?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                viewModel.clearError()
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -104,9 +119,11 @@ fun StatsScreen(
                 )
             }
 
-            // date range picker
             DateRangePicker(
-                onRangeSelected = { start, end -> viewModel.setDateRange(start, end) },
+                startDate = dateRange.start,
+                endDate = dateRange.end,
+                onStartDateSelected = { viewModel.setStartDate(it) },
+                onEndDateSelected = { viewModel.setEndDate(it) },
                 onClear = { viewModel.clearDateRange() }
             )
 

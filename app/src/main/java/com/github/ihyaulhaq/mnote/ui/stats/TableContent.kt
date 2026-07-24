@@ -66,41 +66,50 @@ fun TableContent(
 
     var editingExpense by remember { mutableStateOf<ExpenseWithCategory?>(null) }
 
-    val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+    val dateFormat = remember { SimpleDateFormat("dd/MM/yy", Locale.getDefault()) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+        NSurface(
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = NColors.Blue,
+            borderWidth = 2.dp,
+            shadowOffset = 3.dp,
+            cornerRadius = 4.dp
         ) {
-            Text(
-                text = "Date",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = NColors.Black,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = "Category",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = NColors.Black,
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "Amount",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = NColors.Black,
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.End
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Date",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = NColors.White,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "Category",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = NColors.White,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "Amount",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = NColors.White,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.End
+                )
+            }
         }
 
         LazyColumn(
