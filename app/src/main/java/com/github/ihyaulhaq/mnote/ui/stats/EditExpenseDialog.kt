@@ -17,9 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.widget.Toast
 import com.github.ihyaulhaq.mnote.data.local.Category
 import com.github.ihyaulhaq.mnote.data.local.Expense
 import com.github.ihyaulhaq.mnote.data.local.ExpenseWithCategory
@@ -102,19 +104,23 @@ fun EditExpenseDialog(
             }
         },
         confirmButton = {
+            val context = LocalContext.current
             NButton(
                 backgroundColor = NColors.Green,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    val amount = amountText.toDoubleOrNull() ?: return@NButton
-                    if (amount <= 0) return@NButton
-                    onSave(
-                        expenseWithCategory.expense.copy(
-                            amount = amount,
-                            categoryId = selectedCategoryId,
-                            desc = desc
+                    val amount = amountText.toDoubleOrNull()
+                    if (amount != null && amount > 0) {
+                        onSave(
+                            expenseWithCategory.expense.copy(
+                                amount = amount,
+                                categoryId = selectedCategoryId,
+                                desc = desc
+                            )
                         )
-                    )
+                    } else {
+                        Toast.makeText(context, "Invalid amount", Toast.LENGTH_SHORT).show()
+                    }
                 }
             ) {
                 Text(

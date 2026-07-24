@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -37,6 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.widget.Toast
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ihyaulhaq.mnote.MnoteApp
 import com.github.ihyaulhaq.mnote.ui.components.NButton
@@ -49,6 +52,7 @@ import com.github.ihyaulhaq.mnote.ui.theme.NColors
 fun HomeScreen(
     onNavigateToStats: () -> Unit = {},
     viewModel: ExpenseViewModel = viewModel(
+        viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner,
         factory = ExpenseViewModelFactory(
             LocalContext.current.applicationContext as MnoteApp
         )
@@ -57,6 +61,15 @@ fun HomeScreen(
     MnoteTheme {
         var fieldValue by remember { mutableStateOf("") }
         val categories by viewModel.categories.collectAsState()
+        val context = LocalContext.current
+        val error by viewModel.error.collectAsState()
+
+        LaunchedEffect(error) {
+            error?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                viewModel.clearError()
+            }
+        }
 
         // Modal state
         var showModal by remember { mutableStateOf(false) }
@@ -157,6 +170,8 @@ fun HomeScreen(
                                 modalCategoryId = categories.firstOrNull()?.id ?: 0L
                                 modalDesc = ""
                                 showModal = true
+                            } else {
+                                Toast.makeText(context, "Invalid amount", Toast.LENGTH_SHORT).show()
                             }
                         }
                     ) {
@@ -259,6 +274,8 @@ fun HomeScreen(
                                             )
                                             fieldValue = ""
                                             showModal = false
+                                        } else {
+                                            Toast.makeText(context, "Categories not loaded yet", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 ) {
@@ -266,7 +283,7 @@ fun HomeScreen(
                                         imageVector = Icons.Outlined.Save,
                                         contentDescription = "Save",
                                         modifier = Modifier.size(35.dp),
-                                        tint = NColors.Orange
+                                        tint = NColors.Surface
                                     )
                                 }
                             }
