@@ -29,30 +29,25 @@ class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() 
     val categories: StateFlow<List<Category>> = repository.allCategories
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val defaultRange: DateRangeState = run {
+    private val defaultContentRange: DateRangeState = run {
         val now = LocalDate.now()
-        val start = now.minusMonths(1).withDayOfMonth(1)
+        val start = now.withDayOfMonth(1)
             .atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val end = now.withDayOfMonth(now.lengthOfMonth())
             .atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         DateRangeState(start = start, end = end)
     }
 
-    private val _dateRange = MutableStateFlow(defaultRange)
+    private val _dateRange = MutableStateFlow(DateRangeState())
     val dateRange = _dateRange.asStateFlow()
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val filteredExpenses: StateFlow<List<ExpenseWithCategory>> =
         _dateRange
             .flatMapLatest { range ->
-                if (range.start != null && range.end != null) {
-                    repository.getExpensesByDateRange(
-                        range.start,
-                        range.end
-                    )
-                } else {
-                    repository.allExpenses
-                }
+                val start = range.start ?: defaultContentRange.start
+                val end = range.end ?: defaultContentRange.end
+                repository.getExpensesByDateRange(start!!, end!!)
             }
             .stateIn(
                 viewModelScope,
@@ -112,7 +107,7 @@ class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() 
     }
 
     fun clearDateRange() {
-        _dateRange.value = defaultRange
+        _dateRange.value = defaultContentRange
     }
 
     fun clearError() {
