@@ -45,9 +45,9 @@ class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() 
     val filteredExpenses: StateFlow<List<ExpenseWithCategory>> =
         _dateRange
             .flatMapLatest { range ->
-                val start = range.start ?: defaultContentRange.start
-                val end = range.end ?: defaultContentRange.end
-                repository.getExpensesByDateRange(start!!, end!!)
+                val start = range.start ?: defaultContentRange.start ?: 0L
+                val end = range.end ?: defaultContentRange.end ?: System.currentTimeMillis()
+                repository.getExpensesByDateRange(start, end)
             }
             .stateIn(
                 viewModelScope,
@@ -107,7 +107,7 @@ class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() 
     }
 
     fun clearDateRange() {
-        _dateRange.value = defaultContentRange
+        _dateRange.value = DateRangeState()
     }
 
     fun clearError() {

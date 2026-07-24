@@ -60,7 +60,8 @@ fun DateRangePicker(
             Text(text = startDate?.let { dateFormat.format(Date(it)) } ?: "From",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (startDate != null) NColors.White else NColors.Black)
+                color = if (startDate != null) NColors.White else NColors.Black
+            )
         }
 
         NButton(
@@ -72,17 +73,16 @@ fun DateRangePicker(
             Text(text = endDate?.let { dateFormat.format(Date(it)) } ?: "To",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (endDate != null) NColors.White else NColors.Black)
+                color = if (endDate != null) NColors.White else NColors.Black
+            )
         }
-
-        NButton(
-            backgroundColor = NColors.Red,
-            modifier = Modifier.weight(if (hasRange) 1f else 0f),
-            contentModifier = Modifier.fillMaxWidth(),
-            enabled = hasRange,
-            onClick = onClear
-        ) {
-            if (hasRange) {
+        if (hasRange) {
+            NButton(
+                backgroundColor = NColors.Red,
+                modifier = Modifier.weight(1f),
+                contentModifier = Modifier.fillMaxWidth(),
+                onClick = onClear
+            ) {
                 Text(
                     text = "Clear",
                     fontSize = 12.sp,
@@ -90,8 +90,7 @@ fun DateRangePicker(
                     color = NColors.White
                 )
             }
-        }
-    }
+        }    }
 
     /*
      * Displays a date picker dialog and converts the selected LocalDate
