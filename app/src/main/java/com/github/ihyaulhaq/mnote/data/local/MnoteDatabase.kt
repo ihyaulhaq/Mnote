@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
         Category::class
     ],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class MnoteDatabase : RoomDatabase() {
     abstract fun expenseDao(): ExpenseDao
@@ -27,7 +27,10 @@ abstract class MnoteDatabase : RoomDatabase() {
                     context.applicationContext,
                     MnoteDatabase::class.java,
                     "mnote.db"
-                ).build().also { INSTANCE = it }
+                )
+                .fallbackToDestructiveMigration(dropAllTables = true)
+                .build()
+                .also { INSTANCE = it }
             }
         }
     }
