@@ -1,14 +1,22 @@
 package com.github.ihyaulhaq.mnote.ui.stats
 
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,9 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.widget.Toast
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.github.ihyaulhaq.mnote.data.local.Category
 import com.github.ihyaulhaq.mnote.data.local.Expense
 import com.github.ihyaulhaq.mnote.data.local.ExpenseWithCategory
@@ -38,112 +48,185 @@ fun EditExpenseDialog(
     onSave: (Expense) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var amountText by remember { mutableStateOf(expenseWithCategory.expense.amount.toLong().toString()) }
+    // Local editable state, pre-filled from the existing expense
+    var amountText by remember {
+        mutableStateOf(
+            expenseWithCategory.expense.amount.toLong().toString()
+        )
+    }
     var selectedCategoryId by remember { mutableStateOf(expenseWithCategory.expense.categoryId) }
     var desc by remember { mutableStateOf(expenseWithCategory.expense.desc) }
+    val context = LocalContext.current
 
-    AlertDialog(
+
+    // Dark scrim overlay — tapping dismisses the dialog
+    Dialog (
         onDismissRequest = onDismiss,
-        containerColor = NColors.Background,
-        title = {
-            Text(
-                text = "Edit Expense",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = NColors.Black
-            )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                NTextField(
-                    value = amountText,
-                    onValueChange = { amountText = it.filter { c -> c.isDigit() } },
-                    placeholder = "Amount"
-                )
-
-                Text(
-                    text = "Category",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = NColors.Black
-                )
-
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(NColors.Black.copy(alpha = 0.5f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismiss
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            // Neo-brutalist card
+            NSurface(
+                modifier = Modifier
+                    .width(IntrinsicSize.Max)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { }
+                    ),
+                shadowOffset = 8.dp,
+                borderWidth = 3.dp,
+                cornerRadius = 6.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .width(IntrinsicSize.Max),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    categories.forEach { category ->
-                        val isSelected = category.id == selectedCategoryId
-                        NSurface(
-                            modifier = Modifier.clickable { selectedCategoryId = category.id },
-                            backgroundColor = if (isSelected) NColors.Blue else NColors.White,
-                            shadowOffset = if (isSelected) 2.dp else 4.dp,
-                            borderWidth = 2.dp,
-                            cornerRadius = 4.dp
-                        ) {
-                            Box(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                                contentAlignment = Alignment.Center
+                    // Title
+                    Text(
+                        text = "Edit Expense",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = NColors.Black
+                    )
+
+                    // Amount input (digits only)
+                    NTextField(
+                        value = amountText,
+                        modifier = Modifier.height(60.dp),
+                        onValueChange = { amountText = it.filter { c -> c.isDigit() } },
+                        placeholder = "Amount"
+                    )
+
+                    // Category chip picker — wraps into rows of 3
+                    FlowRow(
+                        modifier = Modifier.wrapContentWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            8.dp,
+                            alignment = Alignment.CenterHorizontally
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        maxItemsInEachRow = 3
+                    ) {
+                        categories.forEach { category ->
+                            val isSelected = category.id == selectedCategoryId
+                            NButton(
+                                backgroundColor = if (isSelected) NColors.Blue else NColors.White,
+                                contentPadding = PaddingValues(horizontal = 5.dp, vertical = 3.dp),
+                                contentModifier = Modifier
+                                    .wrapContentWidth()
+                                    .height(20.dp),
+                                onClick = { selectedCategoryId = category.id }
                             ) {
                                 Text(
                                     text = category.name,
-                                    fontSize = 13.sp,
+                                    fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isSelected) NColors.White else NColors.Black
                                 )
                             }
                         }
                     }
-                }
 
-                NTextField(
-                    value = desc,
-                    onValueChange = { desc = it },
-                    placeholder = "Description (optional)"
-                )
-            }
-        },
-        confirmButton = {
-            val context = LocalContext.current
-            NButton(
-                backgroundColor = NColors.Green,
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    val amount = amountText.toDoubleOrNull()
-                    if (amount != null && amount > 0) {
-                        onSave(
-                            expenseWithCategory.expense.copy(
-                                amount = amount,
-                                categoryId = selectedCategoryId,
-                                desc = desc
+                    // Optional description input
+                    NTextField(
+                        value = desc,
+                        modifier = Modifier.height(60.dp),
+                        onValueChange = { desc = it },
+                        placeholder = "Desc (optional)"
+                    )
+
+                    // Save + Cancel buttons
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        NButton(
+                            backgroundColor = NColors.Green,
+                            contentModifier = Modifier.height(55.dp),
+                            contentPadding = PaddingValues(
+                                horizontal = 20.dp,
+                                vertical = 10.dp
+                            ),
+                            contentSize = 50.dp,
+                            onClick = {
+                                val amount = amountText.toDoubleOrNull()
+                                if (amount != null && amount > 0) {
+                                    onSave(
+                                        expenseWithCategory.expense.copy(
+                                            amount = amount,
+                                            categoryId = selectedCategoryId,
+                                            desc = desc
+                                        )
+                                    )
+                                } else {
+                                    Toast.makeText(context, "Invalid amount", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        ) {
+                            Text(
+                                text = "Save",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = NColors.White
                             )
-                        )
-                    } else {
-                        Toast.makeText(context, "Invalid amount", Toast.LENGTH_SHORT).show()
+                        }
+                        NButton(
+                            backgroundColor = NColors.White,
+                            contentModifier = Modifier.height(55.dp),
+                            contentPadding = PaddingValues(
+                                horizontal = 20.dp,
+                                vertical = 10.dp
+                            ),
+                            contentSize = 50.dp,
+                            onClick = onDismiss
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = NColors.Black
+                            )
+                        }
                     }
                 }
-            ) {
-                Text(
-                    text = "Save",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = NColors.White
-                )
-            }
-        },
-        dismissButton = {
-            NButton(
-                backgroundColor = NColors.White,
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onDismiss
-            ) {
-                Text(
-                    text = "Cancel",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = NColors.Black
-                )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EditExpenseDialogPreview() {
+    val categories = listOf(
+        Category(id = 1, name = "Food"),
+        Category(id = 2, name = "main "),
+        Category(id = 3, name = "makanmakanmakan ")
+    )
+    val expense = ExpenseWithCategory(
+        expense = Expense(
+            id = 1,
+            amount = 100.0,
+            categoryId = 1,
+            desc = "Lunch with friends"
+        ), category = Category(id = 1, name = "Food")
+    )
+    EditExpenseDialog(
+        expenseWithCategory = expense,
+        categories = categories,
+        onSave = {},
+        onDismiss = {}
     )
 }

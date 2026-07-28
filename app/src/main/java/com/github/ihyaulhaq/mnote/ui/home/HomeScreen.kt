@@ -230,15 +230,15 @@ fun HomeScreen(
                                     NButton(
                                         backgroundColor = if (isSelected) NColors.Blue else NColors.White,
                                         contentPadding = PaddingValues(
-                                            horizontal = 16.dp,
-                                            vertical = 10.dp
+                                            horizontal = 5.dp,
+                                            vertical = 3.dp
                                         ),
-                                        contentSize = 40.dp,
+                                        contentSize = 20.dp,
                                         onClick = { modalCategoryId = category.id }
                                     ) {
                                         Text(
                                             text = category.name,
-                                            fontSize = 13.sp,
+                                            fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = if (isSelected) NColors.White else NColors.Black
                                         )
