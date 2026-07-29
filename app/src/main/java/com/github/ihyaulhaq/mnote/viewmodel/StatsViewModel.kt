@@ -1,11 +1,10 @@
-package com.github.ihyaulhaq.mnote.ui.home
+package com.github.ihyaulhaq.mnote.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.ihyaulhaq.mnote.data.ExpenseRepository
-import com.github.ihyaulhaq.mnote.data.local.Category
-import com.github.ihyaulhaq.mnote.data.local.Expense
 import com.github.ihyaulhaq.mnote.data.local.ExpenseWithCategory
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,13 +20,10 @@ data class DateRangeState(
     val end: Long? = null
 )
 
-class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() {
+class StatsViewModel(private val repository: ExpenseRepository) : ViewModel() {
 
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
-
-    val categories: StateFlow<List<Category>> = repository.allCategories
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val defaultContentRange: DateRangeState = run {
         val now = LocalDate.now()
@@ -41,7 +37,7 @@ class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() 
     private val _dateRange = MutableStateFlow(DateRangeState())
     val dateRange = _dateRange.asStateFlow()
 
-    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     val filteredExpenses: StateFlow<List<ExpenseWithCategory>> =
         _dateRange
             .flatMapLatest { range ->
@@ -55,49 +51,6 @@ class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() 
                 emptyList()
             )
 
-    init {
-        viewModelScope.launch {
-            try {
-                repository.seedDefaultCategories()
-            } catch (e: Exception) {
-                _error.value = "Failed to seed categories: ${e.message}"
-            }
-        }
-    }
-
-    fun addExpense(amount: Double, categoryId: Long, desc: String = "") {
-        viewModelScope.launch {
-            try {
-                repository.addExpense(
-                    Expense(amount = amount, categoryId = categoryId, desc = desc)
-                )
-            } catch (e: Exception) {
-                _error.value = "Failed to add expense: ${e.message}"
-            }
-        }
-    }
-
-    fun deleteExpense(id: Long) {
-        viewModelScope.launch {
-            try {
-                repository.deleteExpense(id)
-            } catch (e: Exception) {
-                _error.value = "Failed to delete expense: ${e.message}"
-            }
-        }
-    }
-
-    fun updateExpense(expense: Expense) {
-        viewModelScope.launch {
-            try {
-                repository.updateExpense(expense)
-            } catch (e: Exception) {
-                _error.value = "Failed to update expense: ${e.message}"
-            }
-        }
-    }
-
-    suspend fun getExpenseById(id: Long): Expense? = repository.getExpenseById(id)
     fun setStartDate(start: Long) {
         _dateRange.value = _dateRange.value.copy(start = start)
     }
@@ -112,5 +65,18 @@ class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() 
 
     fun clearError() {
         _error.value = null
+    }
+
+    private fun launchWithError(
+        message: String,
+        block: suspend () -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                block()
+            } catch (e: Exception) {
+                _error.value = "$message: ${e.message}"
+            }
+        }
     }
 }

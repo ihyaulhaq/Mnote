@@ -1,6 +1,5 @@
 ﻿package com.github.ihyaulhaq.mnote.ui.stats
 
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -39,13 +38,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ihyaulhaq.mnote.MnoteApp
 import com.github.ihyaulhaq.mnote.ui.components.NButton
 import com.github.ihyaulhaq.mnote.ui.components.NSurface
-import com.github.ihyaulhaq.mnote.ui.home.ExpenseViewModel
-import com.github.ihyaulhaq.mnote.ui.home.ExpenseViewModelFactory
+import com.github.ihyaulhaq.mnote.viewmodel.CategoryViewModel
+import com.github.ihyaulhaq.mnote.viewmodel.ExpenseViewModel
+import com.github.ihyaulhaq.mnote.viewmodel.StatsViewModel
+import com.github.ihyaulhaq.mnote.viewmodel.sharedCategoryViewModel
 import com.github.ihyaulhaq.mnote.ui.theme.MnoteTheme
 import com.github.ihyaulhaq.mnote.ui.theme.NColors
 
@@ -63,25 +63,41 @@ private val tabs = listOf(
 @Composable
 fun StatsScreen(
     onNavigateBack: () -> Unit,
-    viewModel: ExpenseViewModel = viewModel(
-        viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner,
-        factory = ExpenseViewModelFactory(
-            LocalContext.current.applicationContext as MnoteApp
-        )
+    statsViewModel: StatsViewModel = viewModel(
+        factory = (LocalContext.current.applicationContext as MnoteApp).appFactory
+    ),
+    categoryViewModel: CategoryViewModel = sharedCategoryViewModel(),
+    expenseViewModel: ExpenseViewModel = viewModel(
+        factory = (LocalContext.current.applicationContext as MnoteApp).appFactory
     )
 ) {
     MnoteTheme {
         var selectedTab by remember { mutableIntStateOf(0) }
-        val filteredExpenses by viewModel.filteredExpenses.collectAsState()
-        val categories by viewModel.categories.collectAsState()
-        val dateRange by viewModel.dateRange.collectAsState()
-        val error by viewModel.error.collectAsState()
+        val filteredExpenses by statsViewModel.filteredExpenses.collectAsState()
+        val categories by categoryViewModel.categories.collectAsState()
+        val dateRange by statsViewModel.dateRange.collectAsState()
         val context = LocalContext.current
 
-        LaunchedEffect(error) {
-            error?.let {
+        val statsError by statsViewModel.error.collectAsState()
+        val categoryError by categoryViewModel.error.collectAsState()
+        val expenseError by expenseViewModel.error.collectAsState()
+
+        LaunchedEffect(statsError) {
+            statsError?.let {
                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                viewModel.clearError()
+                statsViewModel.clearError()
+            }
+        }
+        LaunchedEffect(categoryError) {
+            categoryError?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                categoryViewModel.clearError()
+            }
+        }
+        LaunchedEffect(expenseError) {
+            expenseError?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                expenseViewModel.clearError()
             }
         }
 
@@ -90,7 +106,6 @@ fun StatsScreen(
                 .fillMaxSize()
                 .background(NColors.Background)
         ) {
-            // top bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -122,14 +137,13 @@ fun StatsScreen(
             DateRangePicker(
                 startDate = dateRange.start,
                 endDate = dateRange.end,
-                onStartDateSelected = { viewModel.setStartDate(it) },
-                onEndDateSelected = { viewModel.setEndDate(it) },
-                onClear = { viewModel.clearDateRange() }
+                onStartDateSelected = { statsViewModel.setStartDate(it) },
+                onEndDateSelected = { statsViewModel.setEndDate(it) },
+                onClear = { statsViewModel.clearDateRange() }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // content area
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -141,14 +155,13 @@ fun StatsScreen(
                     1 -> TableContent(
                         expenses = filteredExpenses,
                         categories = categories,
-                        onEdit = { viewModel.updateExpense(it) },
-                        onDelete = { viewModel.deleteExpense(it) }
+                        onEdit = { expenseViewModel.updateExpense(it) },
+                        onDelete = { expenseViewModel.deleteExpense(it) }
                     )
                     2 -> SettingsContent()
                 }
             }
 
-            // bottom tab bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

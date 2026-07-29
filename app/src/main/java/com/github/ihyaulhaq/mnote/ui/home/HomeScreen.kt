@@ -2,6 +2,7 @@ package com.github.ihyaulhaq.mnote.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,39 +40,38 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.widget.Toast
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ihyaulhaq.mnote.MnoteApp
 import com.github.ihyaulhaq.mnote.ui.components.NButton
 import com.github.ihyaulhaq.mnote.ui.components.NSurface
 import com.github.ihyaulhaq.mnote.ui.components.NTextField
+import com.github.ihyaulhaq.mnote.viewmodel.CategoryViewModel
+import com.github.ihyaulhaq.mnote.viewmodel.ExpenseViewModel
+import com.github.ihyaulhaq.mnote.viewmodel.sharedCategoryViewModel
 import com.github.ihyaulhaq.mnote.ui.theme.MnoteTheme
 import com.github.ihyaulhaq.mnote.ui.theme.NColors
 
 @Composable
 fun HomeScreen(
     onNavigateToStats: () -> Unit = {},
-    viewModel: ExpenseViewModel = viewModel(
-        viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner,
-        factory = ExpenseViewModelFactory(
-            LocalContext.current.applicationContext as MnoteApp
-        )
-    )
+    expenseViewModel: ExpenseViewModel = viewModel(
+        factory = (LocalContext.current.applicationContext as MnoteApp).appFactory
+    ),
+    categoryViewModel: CategoryViewModel = sharedCategoryViewModel()
 ) {
     MnoteTheme {
         var fieldValue by remember { mutableStateOf("") }
-        val categories by viewModel.categories.collectAsState()
+        val categories by categoryViewModel.categories.collectAsState()
         val context = LocalContext.current
-        val error by viewModel.error.collectAsState()
+        val error by expenseViewModel.error.collectAsState()
 
         LaunchedEffect(error) {
             error?.let {
                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                viewModel.clearError()
+                expenseViewModel.clearError()
             }
         }
 
-        // Modal state
         var showModal by remember { mutableStateOf(false) }
         var pendingAmount by remember { mutableDoubleStateOf(0.0) }
         var modalCategoryId by remember { mutableStateOf(0L) }
@@ -85,7 +85,6 @@ fun HomeScreen(
                 .background(NColors.Background),
             contentAlignment = Alignment.Center
         ) {
-            // Floating button in upper left corner
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -110,7 +109,6 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // text field
                 NTextField(
                     value = fieldValue,
                     modifier = Modifier.height(100.dp),
@@ -118,7 +116,6 @@ fun HomeScreen(
                     placeholder = "0"
                 )
 
-                // keypad
                 FlowRow(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -140,29 +137,30 @@ fun HomeScreen(
                         }
                     }
                 }
-                // delete and enter
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     NButton(
                         backgroundColor = NColors.Red,
-                        contentPadding = PaddingValues(20.dp),
-                        contentSize = 50.dp,
+                        contentPadding = PaddingValues(15.dp),
+                        contentSize = 60.dp,
                         onClick = {
                             if (fieldValue.isNotEmpty()) fieldValue = fieldValue.dropLast(1)
                         }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Backspace,
+                            modifier = Modifier.size(35.dp),
                             contentDescription = "Delete",
                             tint = NColors.Black
                         )
                     }
                     NButton(
                         backgroundColor = NColors.Green,
-                        contentPadding = PaddingValues(20.dp),
-                        contentSize = 50.dp,
+                        contentPadding = PaddingValues(15.dp),
+                        contentSize = 60.dp,
                         onClick = {
                             val amount = fieldValue.toDoubleOrNull()
                             if (amount != null && amount > 0) {
@@ -183,17 +181,15 @@ fun HomeScreen(
                         )
                     }
                 }
-
             }
 
-            // Modal overlay
             if (showModal) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(NColors.Black.copy(alpha = 0.5f))
                         .clickable(
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            interactionSource = remember { MutableInteractionSource() },
                             indication = null,
                             onClick = { showModal = false }
                         ),
@@ -203,7 +199,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .width(IntrinsicSize.Max)
                             .clickable(
-                                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
                                 onClick = { }
                             ),
@@ -218,7 +214,6 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // category picker
                             FlowRow(
                                 modifier = Modifier.wrapContentWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -246,7 +241,6 @@ fun HomeScreen(
                                 }
                             }
 
-                            // description field
                             NTextField(
                                 value = modalDesc,
                                 modifier = Modifier.height(60.dp),
@@ -254,7 +248,6 @@ fun HomeScreen(
                                 placeholder = "note (optional)"
                             )
 
-                            // confirm and cancel
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
@@ -267,7 +260,7 @@ fun HomeScreen(
                                     contentSize = 40.dp,
                                     onClick = {
                                         if (modalCategoryId != 0L) {
-                                            viewModel.addExpense(
+                                            expenseViewModel.addExpense(
                                                 pendingAmount,
                                                 modalCategoryId,
                                                 modalDesc
@@ -295,10 +288,8 @@ fun HomeScreen(
     }
 }
 
-
 @Preview
 @Composable
 private fun HomeScreenPrev() {
     HomeScreen()
-
 }
