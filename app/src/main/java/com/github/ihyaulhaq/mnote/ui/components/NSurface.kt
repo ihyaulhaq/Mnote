@@ -38,7 +38,7 @@ fun NSurface(
     borderColor: Color = NColors.Black,
     shadowColor: Color = NColors.Black,
     borderWidth: Dp = 3.dp,
-    shadowOffset: Dp = 6.dp,
+    shadowOffset: Dp = 4.dp,
     cornerRadius: Dp = 6.dp,
     pressed: Boolean = false,
     content: @Composable BoxScope.() -> Unit = {},

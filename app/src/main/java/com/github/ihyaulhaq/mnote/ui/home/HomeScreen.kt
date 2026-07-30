@@ -49,8 +49,7 @@ import com.github.ihyaulhaq.mnote.viewmodel.CategoryViewModel
 import com.github.ihyaulhaq.mnote.viewmodel.ExpenseViewModel
 import com.github.ihyaulhaq.mnote.viewmodel.sharedCategoryViewModel
 import com.github.ihyaulhaq.mnote.ui.theme.MnoteTheme
-import com.github.ihyaulhaq.mnote.ui.theme.NColors
-
+import com.github.ihyaulhaq.mnote.ui.theme.NColors/** Home screen for recording expenses with amount, category, note, and date inputs. */
 @Composable
 fun HomeScreen(
     onNavigateToStats: () -> Unit = {},

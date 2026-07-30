@@ -2,6 +2,7 @@ package com.github.ihyaulhaq.mnote.data
 
 import com.github.ihyaulhaq.mnote.data.local.Category
 import com.github.ihyaulhaq.mnote.data.local.CategoryDao
+import com.github.ihyaulhaq.mnote.data.local.CategoryWithCount
 import com.github.ihyaulhaq.mnote.data.local.Expense
 import com.github.ihyaulhaq.mnote.data.local.ExpenseDao
 import com.github.ihyaulhaq.mnote.data.local.ExpenseWithCategory
@@ -13,6 +14,7 @@ class ExpenseRepository(
 ) {
     val allExpenses: Flow<List<ExpenseWithCategory>> = expenseDao.observeAll()
     val allCategories: Flow<List<Category>> = categoryDao.observeAll()
+    val categoriesWithCount: Flow<List<CategoryWithCount>> = expenseDao.observeCategoriesWithCount()
 
     suspend fun addExpense(expense: Expense) = expenseDao.insert(expense)
     suspend fun deleteExpense(id: Long) = expenseDao.deleteById(id)
@@ -21,6 +23,7 @@ class ExpenseRepository(
     fun getExpensesByDateRange(start: Long, end: Long) = expenseDao.observeByDateRange(start, end)
 
     suspend fun addCategory(category: Category) = categoryDao.insert(category)
+    suspend fun updateCategory(category: Category) = categoryDao.update(category)
     suspend fun deleteCategory(id: Long) = categoryDao.deleteById(id)
 
     suspend fun seedDefaultCategories() {

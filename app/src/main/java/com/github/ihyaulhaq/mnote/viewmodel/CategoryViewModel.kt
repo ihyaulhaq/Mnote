@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.ihyaulhaq.mnote.data.ExpenseRepository
 import com.github.ihyaulhaq.mnote.data.local.Category
+import com.github.ihyaulhaq.mnote.data.local.CategoryWithCount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+/** Manages category list, add/delete/update, and category-with-count state. */
 class CategoryViewModel(private val repository: ExpenseRepository) : ViewModel() {
 
     private val _error = MutableStateFlow<String?>(null)
@@ -18,6 +20,15 @@ class CategoryViewModel(private val repository: ExpenseRepository) : ViewModel()
 
     val categories: StateFlow<List<Category>> = repository.allCategories
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val categoriesWithCount: StateFlow<List<CategoryWithCount>> = repository.categoriesWithCount
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun updateCategory(id: Long, newName: String) =
+        launchWithError("Failed to update category") {
+            val category = categories.value.find { it.id == id } ?: return@launchWithError
+            repository.updateCategory(category.copy(name = newName))
+        }
 
     fun addCategory(name: String) =
         launchWithError("Failed to add category") {

@@ -58,8 +58,7 @@ private val tabs = listOf(
     TabItem(Icons.Default.BarChart, "Chart"),
     TabItem(Icons.AutoMirrored.Filled.List, "Table"),
     TabItem(Icons.Default.Settings, "Settings")
-)
-
+)/** Stats screen with chart, table, and settings tabs + date range picker. */
 @Composable
 fun StatsScreen(
     onNavigateBack: () -> Unit,
@@ -127,22 +126,23 @@ fun StatsScreen(
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Stats",
+                    text = if (selectedTab == 2) "Settings" else "Stats",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = NColors.Black
                 )
             }
 
-            DateRangePicker(
-                startDate = dateRange.start,
-                endDate = dateRange.end,
-                onStartDateSelected = { statsViewModel.setStartDate(it) },
-                onEndDateSelected = { statsViewModel.setEndDate(it) },
-                onClear = { statsViewModel.clearDateRange() }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
+            if (selectedTab != 2) {
+                DateRangePicker(
+                    startDate = dateRange.start,
+                    endDate = dateRange.end,
+                    onStartDateSelected = { statsViewModel.setStartDate(it) },
+                    onEndDateSelected = { statsViewModel.setEndDate(it) },
+                    onClear = { statsViewModel.clearDateRange() }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             Box(
                 modifier = Modifier
@@ -158,7 +158,7 @@ fun StatsScreen(
                         onEdit = { expenseViewModel.updateExpense(it) },
                         onDelete = { expenseViewModel.deleteExpense(it) }
                     )
-                    2 -> SettingsContent()
+                    2 -> SettingsContent(categoryViewModel = categoryViewModel)
                 }
             }
 

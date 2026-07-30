@@ -1,5 +1,6 @@
 package com.github.ihyaulhaq.mnote.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Embedded
 import androidx.room.Insert
@@ -16,6 +17,11 @@ data class ExpenseWithCategory(
         entityColumn = "id"
     )
     val category: Category
+)
+
+data class CategoryWithCount(
+    @Embedded val category: Category,
+    @ColumnInfo(name = "expenseCount") val expenseCount: Int
 )
 
 @Dao
@@ -39,4 +45,10 @@ interface ExpenseDao {
     @Transaction
     @Query("SELECT * FROM expenses WHERE timestamp BETWEEN :start AND :end ORDER BY timestamp DESC")
     fun observeByDateRange(start: Long, end: Long): Flow<List<ExpenseWithCategory>>
+
+    @Query("""
+        SELECT c.*, (SELECT COUNT(*) FROM expenses e WHERE e.categoryId = c.id) AS expenseCount
+        FROM categories c ORDER BY c.name ASC
+    """)
+    fun observeCategoriesWithCount(): Flow<List<CategoryWithCount>>
 }
